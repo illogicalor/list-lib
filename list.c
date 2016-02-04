@@ -18,9 +18,10 @@
 #define NODE_IN_USE   1
 
 /***** Local Variables *****/
+static int initialized = 0;
 static pNode_t head;
 static pNode_t tail;
-static int list_size;
+static int size;
 
 #if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
 static Node_t nodes[MAX_LIST_SIZE];
@@ -41,6 +42,41 @@ void list_init( void )
 #if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
   memset( nodes, 0, sizeof( nodes ) );
 #endif /* LIST_USE_MALLOC */
+
+  // Set internal flag that list is initialized.
+  initialized = 1;
+}
+
+/**
+ *  @brief  Deinitialize the list
+ */
+void list_deinit( void )
+{
+  //
+  // If LIST_USE_MALLOC is 0, then just clear the memory contents
+  // of the array of nodes. If LIST_USE_MALLOC is 1, we need to
+  // go through the entire list and free any allocated nodes.
+  //
+#if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
+  memset( nodes, 0, sizeof( nodes ) );
+#else
+  // TODO
+#endif /* LIST_USE_MALLOC */
+
+  // Make sure head and tail pointers are null.
+  head = tail = NULL;
+
+  // Clear internal flag that list is initialized.
+  initialized = 0;
+}
+
+/**
+ *  @brief  Determined if list was initialized or not.
+ *  @return 1 if list is initialized, 0 otherwise.
+ */
+int list_initialized( void )
+{
+  return initialized;
 }
 
 /**
@@ -53,7 +89,8 @@ pNode_t list_begin( void )
 }
 
 /**
- *  @brief  
+ *  @brief  Return iterator to end of the list.
+ *  @return Iterator (pointer) to the end of the list.
  */
 pNode_t list_end( void )
 {
@@ -61,43 +98,52 @@ pNode_t list_end( void )
 }
 
 /**
- *  @brief  
+ *  @brief  Advance iterator forward to next node.
  */
 void list_iterate( pNode_t it )
 {
-
+  if ( it != NULL )
+  {
+    it = it->next;
+  }
 }
 
 /**
- *  @brief  
+ *  @brief  Advance iterator backwards to previous node.
  */
 void list_riterate( pNode_t it )
 {
-
+  if ( it != NULL )
+  {
+    it = it->prev;
+  }
 }
 
 /**
- *  @brief  
+ *  @brief  See if the list is empty.
+ *  @return 1 if list is empty. 0 otherwise.
  */
 int list_empty( void )
 {
-
+  return ( size == 0 );
 }
 
 /**
- *  @brief  
+ *  @brief  Get the size of the list.
+ *  @return Size of the list.
  */
 int list_size( void )
 {
-
+  return size;
 }
 
 /**
- *  @brief  
+ *  @brief  Get the maximum possible list size.
+ *  @return Maximum list size possible.
  */
 int list_max_size( void )
 {
-
+  return MAX_LIST_SIZE;
 }
 
 /***** Private Functions *****/

@@ -54,9 +54,11 @@ typedef struct listnode_t
 
 /***** Function Prototypes *****/
 //
-// Init function
+// Init functions
 //
 void list_init( void );
+void list_deinit( void );
+int  list_initialized( void );
 
 //
 // Iterators

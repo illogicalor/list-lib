@@ -1,10 +1,10 @@
-/********************************************************************************
+/*******************************************************************************
  * 
  *  @file:    list.h
  *  @author:  IllogicalOR
  *  @brief:   Header file for generic list library.
  * 
- ********************************************************************************
+ *******************************************************************************
  */
 
 #ifndef __LIST_H__
@@ -52,11 +52,22 @@ typedef struct listnode_t
 #endif
 } Node_t, *pNode_t;
 
+#if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC )
+//
+// Function pointer for freeing node
+//
+typedef void (*fnptrFreeNode_t)(pNode_t);
+#endif
+
 /***** Function Prototypes *****/
 //
-// Init functions
+// Init/deinit functions
 //
+#if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
 void list_init( void );
+#else
+void list_init( fnptrFreeNode_t fptr );
+#endif
 void list_deinit( void );
 int  list_initialized( void );
 

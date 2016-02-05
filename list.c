@@ -1,10 +1,10 @@
-/********************************************************************************
+/*******************************************************************************
  * 
  *  @file:    list.c
  *  @author:  IllogicalOR
  *  @brief:   List implementation with a linked list.
  * 
- ********************************************************************************
+ *******************************************************************************
  */
 
 /***** Includes *****/
@@ -25,6 +25,8 @@ static int size;
 
 #if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
 static Node_t nodes[MAX_LIST_SIZE];
+#else
+static fnptrFreeNode_t free_node;
 #endif /* LIST_USE_MALLOC */
 
 /***** Function Prototypes *****/
@@ -35,12 +37,29 @@ static Node_t *get_next_free_node( void );
 /**
  *  @brief  Initialize the list
  */
+#if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
 void list_init( void )
+#else
+void list_init( fnptrFreeNode_t fptr )
+#endif
 {
   head = tail = NULL;
+  size = 0;
 
 #if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
   memset( nodes, 0, sizeof( nodes ) );
+#else
+  // Must have provided a valid "free_node()" function.
+  if ( fptr )
+  {
+    free_node = fptr;
+  }
+  else
+  {
+    // List is unitialized!
+    initialized = 0;
+    return;
+  }
 #endif /* LIST_USE_MALLOC */
 
   // Set internal flag that list is initialized.
@@ -59,12 +78,23 @@ void list_deinit( void )
   //
 #if ( defined LIST_USE_MALLOC && LIST_USE_MALLOC == 0 )
   memset( nodes, 0, sizeof( nodes ) );
+  head = tail = NULL;
+  size = 0;
 #else
-  // TODO
+  pNode_t temp;
+  while ( head )
+  {
+    temp = head;
+    head = head->next;
+    // TODO what about nodes that have pointers to data structs?
+    // Need a generic way to call a custom "free()" function.
+    free_node( temp );
+  }
+  tail = NULL;
+  free_node = NULL;
+  size = 0;
 #endif /* LIST_USE_MALLOC */
 
-  // Make sure head and tail pointers are null.
-  head = tail = NULL;
 
   // Clear internal flag that list is initialized.
   initialized = 0;
@@ -95,8 +125,7 @@ pNode_t list_begin( void )
 pNode_t list_end( void )
 {
   return tail;
-}
-
+} 
 /**
  *  @brief  Advance iterator forward to next node.
  */
@@ -166,8 +195,14 @@ static Node_t *get_next_free_node( void )
   // No free node found.
   return NULL;
 #else
-  Node_t *new_node = (Node_t *)malloc( sizeof( Node_t ) );
-  return new_node;
+  if ( size < MAX_LIST_SIZE )
+  {
+    Node_t *new_node = (Node_t *)malloc( sizeof( Node_t ) );
+    return new_node;
+  }
+
+  // Max size reached. Don't allocated anymore memory.
+  return NULL;
 #endif /* LIST_USE_MALLOC */
 }
 
